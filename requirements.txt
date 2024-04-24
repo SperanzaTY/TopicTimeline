@@ -1,0 +1,8 @@
+numpy
+pandas
+scikit-learn
+requests
+beautifulsoup4
+matplotlib
+jieba
+openpyxl
