@@ -29,3 +29,7 @@ sudo cp /home/ubuntu/TopicTimeline/SimHei.ttf /usr/share/fonts/
 ## Git
 git config --global user.email "you@example.com"  
 git config --global user.name "Your Name"  
+
+## S3 access
+Create an IAM with _AmazonS3FullAccess_ strategy.  
+Assign this IAM role to your EC2 instance.  
