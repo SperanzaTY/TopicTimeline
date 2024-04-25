@@ -1,5 +1,7 @@
 import json
 import os
+import io
+import pickle
 import boto3
 import numpy as np
 from datetime import datetime, timedelta
@@ -7,23 +9,44 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from collections import defaultdict
 import re
 from utils import read_csv_file, seg_sentence 
+import numpy as np
+import json
+import os
+from collections import defaultdict
 
 # 确定遍历的月份范围
 start_month = '2022-11'
-end_month = '2022-11'
+end_month = '2023-10'
 start_date = datetime.strptime(start_month, '%Y-%m')
 end_date = datetime.strptime(end_month, '%Y-%m')
+local_directory = '/home/ubuntu/vec'
+
+def save_with_pickle(data, directory, filename):
+    """使用pickle将数据保存到本地文件系统"""
+    # 确保目录存在
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    # 文件的完整路径
+    filepath = os.path.join(directory, filename)
+    # 使用pickle保存数据
+    with open(filepath, 'wb') as f:  # 'wb' 表示二进制写模式
+        pickle.dump(data, f)
 
 # 初始化 S3 客户端
 s3_client = boto3.client('s3')
 bucket_name = 'topictimelinebucket'  # 替换为你的S3桶名称
 
-def upload_to_s3(bucket, key, data):
-    # 如果数据是NumPy数组，转换为列表
-    if isinstance(data, np.ndarray):
-        data = data.tolist()
-    s3_client.put_object(Body=json.dumps(data), Bucket=bucket, Key=key)
-
+def upload_to_s3(data, bucket_name, key):
+    """使用pickle将数据直接保存到S3"""
+    # 序列化数据
+    buffer = io.BytesIO()
+    pickle.dump(data, buffer)
+    buffer.seek(0)
+    
+    # 初始化S3客户端并上传数据
+    s3_client = boto3.client('s3')
+    s3_client.upload_fileobj(buffer, bucket_name, key)
+    print(f"Uploaded {key} to S3")
 
 def process(files):
     """
@@ -91,14 +114,43 @@ def main():
                 current_date += timedelta(days=32)
                 current_date = current_date.replace(day=1)
 
-            jieba_seg = [seg_sentence(line) for line in rows]
+            jieba_seg = []
+            for line in rows:
+                line_seg = seg_sentence(line)  # 这里的返回值是字符串
+                # outputs.write(line_seg + '\n')
+                jieba_seg.append(line_seg)
+
             glossary, weigh_list, weigh_matrix, inverse_index = process(jieba_seg)
 
             # 上传到S3
-            upload_to_s3(bucket_name, f'{start_segment}_{end_segment}_glossary.json', glossary)
-            upload_to_s3(bucket_name, f'{start_segment}_{end_segment}_weigh_matrix.json', weigh_matrix)
-            upload_to_s3(bucket_name, f'{start_segment}_{end_segment}_inverse_index.json', inverse_index)
-            print("upload "+start_segment+" to "+end_segment+" success！")
+            save_directory = f'{start_segment}_{end_segment}'
+
+            print(f"Data for {start_segment} to {end_segment} glossary saving to S3...")
+            upload_to_s3(glossary, bucket_name, f'{save_directory}/{start_segment}_{end_segment}_glossary.pkl')
+            print(f"Data for {start_segment} to {end_segment} weigh list saving to S3...")
+            upload_to_s3(weigh_list, bucket_name, f'{save_directory}/{start_segment}_{end_segment}_weigh_list.pkl')
+            print(f"Data for {start_segment} to {end_segment} weigh matrix saving to S3...")
+            upload_to_s3(weigh_matrix, bucket_name, f'{save_directory}/{start_segment}_{end_segment}_weigh_matrix.pkl')
+            print(f"Data for {start_segment} to {end_segment} inverse index saving to S3...")
+            upload_to_s3(inverse_index, bucket_name, f'{save_directory}/{start_segment}_{end_segment}_inverse_index.pkl')
+            print(f"Data for {start_segment} to {end_segment} jieba_seg saving to S3...")
+            upload_to_s3(jieba_seg, bucket_name, f'{save_directory}/{start_segment}_{end_segment}_jieba_seg.pkl')
+
+            print(f"Data for {start_segment} to {end_segment} saved to S3.")
+
+            # # 保存到本地
+            # save_directory = f'{local_directory}/{start_segment}_{end_segment}'
+            # print(f"Data for {start_segment} to {end_segment} glossary saving locally...")
+            # save_with_pickle(glossary, save_directory, f'{start_segment}_{end_segment}_glossary.pkl')
+            # print(f"Data for {start_segment} to {end_segment} weigh list saving locally...")
+            # save_with_pickle(weigh_list, save_directory, f'{start_segment}_{end_segment}_weigh_list.pkl')
+            # print(f"Data for {start_segment} to {end_segment} weigh matrix saving locally...")
+            # save_with_pickle(weigh_matrix, save_directory, f'{start_segment}_{end_segment}_weigh_matrix.pkl')
+            # print(f"Data for {start_segment} to {end_segment} inverse index saved locally...")
+            # save_with_pickle(inverse_index, save_directory, f'{start_segment}_{end_segment}_inverse_index.pkl')
+            # print(f"Data for {start_segment} to {end_segment} jieba_seg saved locally...")
+            # save_with_pickle(jieba_seg, save_directory, f'{start_segment}_{end_segment}_jieba_seg.pkl')
+            # print(f"Data for {start_segment} to {end_segment} saved locally.")
 
 if __name__ == "__main__":
     main()
