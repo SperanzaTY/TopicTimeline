@@ -19,9 +19,12 @@ cd TopicTimeline
 pip3 install -r requirements.txt  
 
 ## install font
-sudo apt-get install -y fonts-dejavu  
-sudo apt-get install -y ttf-mscorefonts-installer  
-sudo fc-cache -f -v  
+rm ~/.cache/matplotlib/fontlist-v330.json  
+rm -rf /home/featurize/.cache/matplotlib 
+
+cd ..  
+cd ..  
+sudo cp /home/ubuntu/TopicTimeline/SimHei.ttf /usr/share/fonts/  
 
 ## Git
 git config --global user.email "you@example.com"  
