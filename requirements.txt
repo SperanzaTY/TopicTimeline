@@ -7,3 +7,7 @@ matplotlib
 jieba
 openpyxl
 boto3
+mxnet
+tensorflow
+gluonnlp
+jieba
