@@ -253,3 +253,10 @@ Remember to install all required Python dependencies listed in `requirements.txt
 
 Ensure that the appropriate fonts are installed if you encounter issues with missing fonts during visualization generation, as previously described in the installation guide.
 
+## Project Demonstration
+
+For a visual demonstration of the Hot Topic Timeline Generator project, please visit our video on Bilibili at the following link:
+
+[Project Demo Video on Bilibili](https://www.bilibili.com/video/BV1KH4y1V7mG/)
+
+This video showcases the functionality of our project, providing a clear understanding of how it operates and the benefits it offers.
