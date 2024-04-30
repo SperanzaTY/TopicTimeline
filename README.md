@@ -1,5 +1,4 @@
-# Hot Topic Timeline Generator
-
+# Weibo Hot Topic Timeline Based on AWS Platform
 ## Project Overview
 
 In today's fast-paced world, social media platforms like Weibo have become central hubs for news dissemination and opinion sharing. However, the rapid influx of information leads to significant challenges, notably information overload. During major news events, user-generated content surges, creating a dense and complex flow of information that can be challenging to navigate and understand comprehensively.
