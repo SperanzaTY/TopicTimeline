@@ -20,6 +20,18 @@ By adopting these methodologies, we aim to mitigate the issue of information ove
 
 To ensure the successful deployment and operation of our Hot Topic Timeline Generator, specific environment configurations are required. Below is a detailed guide on setting up the environment using Amazon Web Services (AWS), specifically EC2 and S3 services.
 
+### Local and Remote Development Environment Setup
+
+Ensure that your local development environment matches the production settings as closely as possible. This includes installing necessary software and libraries that are compatible with the AWS EC2 instance.
+
+- **Required Software:**
+  - Python 3.8 or higher
+  - Apache Hadoop
+  - Apache Spark
+  - MXNet
+  - TensorFlow
+  - Additional Python libraries as specified in `requirements.txt`
+
 ### AWS EC2 Configuration
 
 - **Instance Type:** `m5.large`
@@ -34,17 +46,75 @@ To ensure the successful deployment and operation of our Hot Topic Timeline Gene
 - **Usage:** Storing and retrieving data such as vocabulary lists, weight matrices, and inverted index tables.
 - AWS S3 is utilized for its scalability, security, and high availability, which are crucial for handling large volumes of unstructured data generated and processed by our application.
 
-### Local and Remote Development Environment Setup
+### Configuring Hadoop and Spark Environments
 
-Ensure that your local development environment matches the production settings as closely as possible. This includes installing necessary software and libraries that are compatible with the AWS EC2 instance.
+This section provides step-by-step instructions for setting up Hadoop and Spark on your AWS EC2 instance, ensuring your big data processing components are properly configured.
 
-- **Required Software:**
-  - Python 3.8 or higher
-  - Apache Hadoop
-  - Apache Spark
-  - MXNet
-  - TensorFlow
-  - Additional Python libraries as specified in `requirements.txt`
+#### Hadoop Configuration
+
+1. **Install Java and Download Hadoop**:
+    Ensure Java is installed and then download Hadoop:
+    ```bash
+    sudo apt update
+    sudo apt install default-jdk
+    wget "https://mirrors.sonic.net/apache/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz"
+    sudo tar -zxvf hadoop-3.4.0.tar.gz -C /opt
+    ```
+
+2. **Environment Variables**:
+    Set Hadoop environment variables by adding the following lines to your `~/.bashrc` file:
+    ```bash
+    export HADOOP_HOME=/opt/hadoop-3.4.0
+    export HADOOP_INSTALL=$HADOOP_HOME
+    export HADOOP_MAPRED_HOME=$HADOOP_HOME
+    export HADOOP_COMMON_HOME=$HADOOP_HOME
+    export HADOOP_HDFS_HOME=$HADOOP_HOME
+    export YARN_HOME=$HADOOP_HOME
+    export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+    export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+    export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib/native"
+    ```
+    Reload the .bashrc file:
+    ```bash
+    source ~/.bashrc
+    ```
+
+3. **Configure Hadoop Files**:
+    Modify `core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, and `yarn-site.xml` according to your setup requirements. These configuration files are typically located in `$HADOOP_HOME/etc/hadoop`.
+
+4. **Format the Namenode and Start Hadoop Services**:
+    ```bash
+    hdfs namenode -format
+    start-dfs.sh
+    start-yarn.sh
+    ```
+
+5. **Verify Hadoop Installation**:
+    Use the `jps` command to check that the Hadoop daemons are running correctly.
+
+#### Spark Configuration
+
+1. **Download and Install Spark**:
+    ```bash
+    wget "https://archive.apache.org/dist/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3-scala2.13.tgz"
+    sudo tar xvf spark-3.5.1-bin-hadoop3-scala2.13.tgz -C /opt
+    ```
+
+2. **Environment Variables for Spark**:
+    Add the following lines to your `~/.bashrc`:
+    ```bash
+    export SPARK_HOME=/opt/spark-3.5.1-bin-hadoop3-scala2.13
+    export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+    ```
+    Reload the .bashrc configuration:
+    ```bash
+    source ~/.bashrc
+    ```
+
+3. **Start Spark Services**:
+    Optionally, you can start Spark standalone services or integrate with the Hadoop YARN cluster.
+
+This guide ensures that Hadoop and Spark are configured to handle the data processing requirements of your project. Adjust the configurations based on your specific project needs and AWS setup.
 
 ## Installation Guide
 
@@ -90,7 +160,18 @@ sudo apt install python3-pip
 pip3 install -r requirements.txt
 ```
 
-#### Handling Missing Chinese Fonts
+### 3.1 Data Crawling
+
+Run the `scrapy.py` script to gather data on trending topics from Weibo:
+
+```bash
+python scrapy.py
+```
+
+Please note that due to Weibo's anti-crawler mechanisms and potential network issues, the crawling process may be interrupted or fail.  
+Additionally, if you are unable to crawl data successfully, pre-collected Weibo data is available in the `/topic` directory for use.
+
+### 3.2 Handling Missing Chinese Fonts
 
 If running the code results in errors due to missing Chinese fonts, you need to install the font and clear the matplotlib cache:
 
